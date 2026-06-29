@@ -3,3 +3,11 @@
 {"level":"info","message":"Hello World route accessed","service":"aquisitions-api"}
 {"level":"info","message":"Hello World route accessed","service":"aquisitions-api"}
 {"level":"info","message":"::1 - - [29/Jun/2026:12:03:24 +0000] \"GET / HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36\"","service":"aquisitions-api"}
+{"level":"info","message":"Hello World route accessed","service":"aquisitions-api"}
+{"level":"info","message":"::1 - - [29/Jun/2026:12:37:51 +0000] \"GET / HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36\"","service":"aquisitions-api"}
+{"level":"info","message":"::1 - - [29/Jun/2026:12:37:57 +0000] \"GET /health HTTP/1.1\" 200 74 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36\"","service":"aquisitions-api"}
+{"level":"info","message":"::1 - - [29/Jun/2026:12:38:04 +0000] \"GET /api HTTP/1.1\" 200 40 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36\"","service":"aquisitions-api"}
+{"level":"info","message":"Hello World route accessed","service":"aquisitions-api"}
+{"level":"info","message":"::1 - - [29/Jun/2026:12:47:22 +0000] \"GET / HTTP/1.1\" 200 11 \"-\" \"HTTPie\"","service":"aquisitions-api"}
+{"level":"info","message":"::1 - - [29/Jun/2026:12:47:27 +0000] \"GET /health HTTP/1.1\" 200 75 \"-\" \"HTTPie\"","service":"aquisitions-api"}
+{"level":"info","message":"::1 - - [29/Jun/2026:12:47:35 +0000] \"GET /api HTTP/1.1\" 200 40 \"-\" \"HTTPie\"","service":"aquisitions-api"}
