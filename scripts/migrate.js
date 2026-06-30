@@ -1,11 +1,8 @@
 import 'dotenv/config';
-
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
+import { migrate } from 'drizzle-orm/neon-http/migrator';
 
-// When running against Neon Local (docker-compose dev), the serverless driver
-// must use plain HTTP instead of TLS WebSockets, and route SQL via the proxy's
-// /sql endpoint. NEON_LOCAL_HOST is the service name inside the compose network.
 if (process.env.NEON_LOCAL === 'true') {
   const host = process.env.NEON_LOCAL_HOST || 'localhost';
   neonConfig.fetchEndpoint = `http://${host}:5432/sql`;
@@ -14,7 +11,8 @@ if (process.env.NEON_LOCAL === 'true') {
 }
 
 const sql = neon(process.env.DATABASE_URL);
-
 const db = drizzle(sql);
 
-export { db, sql };
+console.log('Running database migrations...');
+await migrate(db, { migrationsFolder: './.drizzle' });
+console.log('Migrations complete.');

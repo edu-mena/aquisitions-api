@@ -1,0 +1,31 @@
+services:
+  neon-local:
+    image: neondatabase/neon_local:latest
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env.development
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/5432' 2>/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.development
+    # Override CMD to use --watch for hot-reload in development.
+    command: ["node", "--watch", "src/index.js"]
+    volumes:
+      # Mount source only — node_modules stays inside the container.
+      - ./src:/app/src
+    depends_on:
+      neon-local:
+        condition: service_healthy
+    restart: on-failure

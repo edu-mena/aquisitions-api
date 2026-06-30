@@ -16,6 +16,8 @@
   },
   "scripts": {
     "dev": "node --watch src/index.js",
+    "dev:docker": "node scripts/dev.js",
+    "prod:docker": "node scripts/prod.js",
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
