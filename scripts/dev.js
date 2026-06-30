@@ -27,7 +27,9 @@ mkdirSync('.neon_local', { recursive: true });
 
 const gitignorePath = '.gitignore';
 const entry = '.neon_local/';
-const gitignore = existsSync(gitignorePath) ? readFileSync(gitignorePath, 'utf8') : '';
+const gitignore = existsSync(gitignorePath)
+  ? readFileSync(gitignorePath, 'utf8')
+  : '';
 if (!gitignore.includes(entry)) {
   appendFileSync(gitignorePath, `\n${entry}\n`);
   console.log('Added .neon_local/ to .gitignore');
@@ -39,12 +41,16 @@ console.log('   - Migrations run automatically on container startup');
 console.log('   - Application will run with hot reload enabled');
 console.log('');
 
-const proc = spawn('docker', ['compose', '-f', 'docker-compose.dev.yml', 'up', '--build'], {
-  stdio: 'inherit',
-  shell: true,
-});
+const proc = spawn(
+  'docker',
+  ['compose', '-f', 'docker-compose.dev.yml', 'up', '--build'],
+  {
+    stdio: 'inherit',
+    shell: true,
+  }
+);
 
-proc.on('close', (code) => {
+proc.on('close', code => {
   console.log('');
   console.log('Development environment stopped.');
   console.log('   To clean up: docker compose -f docker-compose.dev.yml down');

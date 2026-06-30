@@ -11,14 +11,22 @@ console.log('============================================');
 
 if (!existsSync('.env.production')) {
   console.error('Error: .env.production file not found!');
-  console.error('   Please create it with your production environment variables.');
+  console.error(
+    '   Please create it with your production environment variables.'
+  );
   process.exit(1);
 }
 
 const envContent = readFileSync('.env.production', 'utf8');
-if (envContent.includes('<user>') || envContent.includes('<password>') || envContent.includes('<endpoint>')) {
+if (
+  envContent.includes('<user>') ||
+  envContent.includes('<password>') ||
+  envContent.includes('<endpoint>')
+) {
   console.error('Error: .env.production still has placeholder values!');
-  console.error('   Please fill in the real Neon Cloud credentials before deploying.');
+  console.error(
+    '   Please fill in the real Neon Cloud credentials before deploying.'
+  );
   process.exit(1);
 }
 
@@ -36,12 +44,16 @@ console.log('   - Migrations run automatically on container startup');
 console.log('   - Running in optimized production mode');
 console.log('');
 
-const proc = spawn('docker', ['compose', '-f', 'docker-compose.prod.yml', 'up', '--build', '-d'], {
-  stdio: 'inherit',
-  shell: true,
-});
+const proc = spawn(
+  'docker',
+  ['compose', '-f', 'docker-compose.prod.yml', 'up', '--build', '-d'],
+  {
+    stdio: 'inherit',
+    shell: true,
+  }
+);
 
-proc.on('close', (code) => {
+proc.on('close', code => {
   if (code !== 0) {
     console.error(`\nError: docker compose exited with code ${code}`);
     process.exit(code ?? 1);
