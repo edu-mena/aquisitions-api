@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aquisitions API — Architecture</title>
+  <style>
+    /* ── Reset & Tokens ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0d1117;
+      --surface:     #161b22;
+      --surface-2:   #1c2128;
+      --border:      #30363d;
+      --text:        #e6edf3;
+      --muted:       #8b949e;
+      --green:       #3fb950;
+      --blue:        #58a6ff;
+      --purple:      #bc8cff;
+      --yellow:      #d29922;
+      --orange:      #f0883e;
+      --red:         #f85149;
+      --teal:        #39d353;
+      --accent:      #238636;
+      --accent-soft: #1f6feb;
+      --radius:      8px;
+      --sidebar-w:   260px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      display: flex;
+    }
+
+    /* ── Sidebar ────────────────────────────────────────────── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 0 0 24px;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+
+    .sidebar-logo .icon {
+      width: 32px; height: 32px;
+      background: var(--accent-soft);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .sidebar-logo .name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .sidebar-logo .version {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .sidebar nav { padding: 4px 0; }
+
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      color: var(--text);
+      background: var(--surface-2);
+      border-left-color: var(--blue);
+    }
+
+    .sidebar nav .section-label {
+      padding: 16px 20px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Main Content ───────────────────────────────────────── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 48px 56px 80px;
+      max-width: 960px;
+    }
+
+    /* ── Hero ───────────────────────────────────────────────── */
+    .hero {
+      margin-bottom: 56px;
+    }
+
+    .hero .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(63, 185, 80, 0.12);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 span { color: var(--blue); }
+
+    .hero p {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 640px;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .hero-meta .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hero-meta .meta-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .hero-meta .meta-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── Sections ───────────────────────────────────────────── */
+    section {
+      margin-bottom: 64px;
+      scroll-margin-top: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-header .num {
+      width: 28px; height: 28px;
+      background: var(--accent-soft);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--blue);
+      flex-shrink: 0;
+    }
+
+    .section-header h2 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    /* ── Cards ──────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .card p { color: var(--muted); font-size: 14px; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    /* ── Tech Stack Grid ────────────────────────────────────── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .tech-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      transition: border-color 0.15s;
+    }
+
+    .tech-card:hover { border-color: var(--blue); }
+
+    .tech-card .tech-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .tech-card .tech-version {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .tech-card .tech-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .tech-card .tech-icon {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    /* ── Tags ───────────────────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+      line-height: 1.8;
+    }
+
+    .tag-blue   { background: rgba(88,166,255,.12); color: var(--blue); }
+    .tag-green  { background: rgba(63,185,80,.12);  color: var(--green); }
+    .tag-purple { background: rgba(188,140,255,.12); color: var(--purple); }
+    .tag-orange { background: rgba(240,136,62,.12); color: var(--orange); }
+    .tag-red    { background: rgba(248,81,73,.12);  color: var(--red); }
+    .tag-yellow { background: rgba(210,153,34,.12); color: var(--yellow); }
+
+    /* ── Code blocks ────────────────────────────────────────── */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--orange);
+    }
+
+    /* ── Layer Diagram ──────────────────────────────────────── */
+    .layer-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 24px 0;
+    }
+
+    .layer {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .layer-box {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.15s;
+    }
+
+    .layer-box:hover { border-color: var(--blue); }
+
+    .layer-box .layer-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .layer-box .layer-file {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: monospace;
+    }
+
+    .layer-arrow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--muted);
+      font-size: 18px;
+      padding: 2px 0;
+    }
+
+    /* Color-coded layers */
+    .layer-client  .layer-box { border-left: 3px solid var(--blue); }
+    .layer-route   .layer-box { border-left: 3px solid var(--purple); }
+    .layer-ctrl    .layer-box { border-left: 3px solid var(--orange); }
+    .layer-service .layer-box { border-left: 3px solid var(--green); }
+    .layer-db      .layer-box { border-left: 3px solid var(--yellow); }
+
+    /* ── Flow Steps ─────────────────────────────────────────── */
+    .flow-steps { list-style: none; display: flex; flex-direction: column; gap: 0; }
+
+    .flow-step {
+      display: flex;
+      gap: 16px;
+      position: relative;
+    }
+
+    .flow-step::before {
+      content: '';
+      position: absolute;
+      left: 17px;
+      top: 36px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .flow-step:last-child::before { display: none; }
+
+    .flow-step-num {
+      width: 36px; height: 36px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--blue);
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .flow-step-body {
+      padding: 6px 0 24px;
+      flex: 1;
+    }
+
+    .flow-step-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .flow-step-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .flow-step-code {
+      margin-top: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── File Tree ──────────────────────────────────────────── */
+    .file-tree {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .file-tree .folder { color: var(--blue); font-weight: 600; }
+    .file-tree .file   { color: var(--muted); }
+    .file-tree .file-desc { color: var(--border); font-size: 12px; }
+    .file-tree .highlight { color: var(--orange); }
+    .file-tree .new-file  { color: var(--green); }
+
+    /* ── Endpoint Table ─────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    th {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    td {
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      color: var(--text);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--surface-2); }
+
+    /* ── Callout ────────────────────────────────────────────── */
+    .callout {
+      border-left: 3px solid;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .callout-info   { border-color: var(--blue);   background: rgba(88,166,255,.06); }
+    .callout-warn   { border-color: var(--yellow);  background: rgba(210,153,34,.06); }
+    .callout-green  { border-color: var(--green);   background: rgba(63,185,80,.06); }
+    .callout-red    { border-color: var(--red);     background: rgba(248,81,73,.06); }
+
+    .callout strong { color: var(--text); }
+    .callout p { color: var(--muted); margin: 0; }
+
+    /* ── Strengths/Tradeoffs ────────────────────────────────── */
+    .pro-con-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .pro-con-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+
+    .pro-con-card .pctitle {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    .pro-con-card.pros .pctitle { color: var(--green); }
+    .pro-con-card.cons .pctitle { color: var(--yellow); }
+
+    .pro-con-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pro-con-card li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    .pro-con-card li .icon { flex-shrink: 0; margin-top: 1px; }
+    .pros li .icon { color: var(--green); }
+    .cons li .icon { color: var(--yellow); }
+
+    /* ── Summary Card ───────────────────────────────────────── */
+    .summary-card {
+      background: linear-gradient(135deg, #0d1d35 0%, #0d1117 100%);
+      border: 1px solid var(--accent-soft);
+      border-radius: 12px;
+      padding: 28px 32px;
+    }
+
+    .summary-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+
+    .summary-card p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ── Scrollbar ──────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 32px 24px; }
+      .tech-grid, .card-grid, .pro-con-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════ SIDEBAR ════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">🔌</div>
+    <div>
+      <div class="name">Aquisitions API</div>
+      <div class="version">v1.0.0 · Node.js</div>
+    </div>
+  </div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="#big-picture">🎯 Big Picture</a>
+    <a href="#architecture">🏛️ Core Architecture</a>
+
+    <div class="section-label">Structure</div>
+    <a href="#file-structure">📁 File Structure</a>
+    <a href="#components">🧩 Key Components</a>
+    <a href="#tech-stack">🛠️ Tech Stack</a>
+
+    <div class="section-label">Behavior</div>
+    <a href="#data-flow">🔄 Data Flow</a>
+    <a href="#endpoints">📡 API Endpoints</a>
+    <a href="#execution">⚡ Execution Flow</a>
+
+    <div class="section-label">Evaluation</div>
+    <a href="#tradeoffs">⚖️ Strengths & Tradeoffs</a>
+    <a href="#summary">💬 Summary</a>
+  </nav>
+</aside>
+
+<!-- ════════════════════ MAIN ════════════════════ -->
+<main class="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="badge">
+      <span>●</span> Architecture Documentation
+    </div>
+    <h1>Aquisitions <span>API</span></h1>
+    <p>
+      A Node.js REST API for user registration and authentication,
+      built with Express, Drizzle ORM, and PostgreSQL on Neon.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <span class="meta-label">Runtime</span>
+        <span class="meta-value">Node.js (ESM)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Framework</span>
+        <span class="meta-value">Express v5</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Database</span>
+        <span class="meta-value">PostgreSQL / Neon</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Pattern</span>
+        <span class="meta-value">Layered MVC</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 1. Big Picture ─────────────────────────────── -->
+  <section id="big-picture">
+    <div class="section-header">
+      <div class="num">1</div>
+      <h2>Big Picture</h2>
+    </div>
+
+    <p style="color:var(--muted); margin-bottom: 20px;">
+      This is a <strong style="color:var(--text)">REST API backend</strong> built for handling user
+      acquisition flows — primarily user registration and authentication. It exposes HTTP
+      endpoints consumed by a frontend client (web or mobile) and connects to a
+      serverless PostgreSQL database hosted on Neon.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">
+          <span class="dot" style="background:var(--blue)"></span>
+          What type of project?
+        </div>
+        <p>A <strong>Node.js REST API</strong>. No server-side rendering, no HTML — pure JSON over HTTP. Designed to be consumed by a separate frontend client.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span class="dot" style="background:var(--green)"></span>
+          What problem does it solve?
+        </div>
+        <p>Manages the <strong>user acquisition lifecycle</strong>: registration with validation, secure password storage, JWT issuance, and (planned) sign-in/sign-out flows.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span class="dot" style="background:var(--purple)"></span>
+          Current state
+        </div>
+        <p>Early-stage. <strong>Sign-up</strong> is fully implemented. Sign-in and Sign-out endpoints exist as stubs and are not yet functional.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span class="dot" style="background:var(--orange)"></span>
+          Deployment target
+        </div>
+        <p>Serverless-friendly. Uses <strong>Neon's HTTP driver</strong> (<code>@neondatabase/serverless</code>), which is optimized for ephemeral/serverless environments.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── 2. Core Architecture ───────────────────────── -->
+  <section id="architecture">
+    <div class="section-header">
+      <div class="num">2</div>
+      <h2>Core Architecture</h2>
+    </div>
+
+    <p style="color:var(--muted); margin-bottom: 24px;">
+      The project follows a <strong style="color:var(--text)">Layered Architecture</strong> (also called
+      N-Tier). Each layer has a single responsibility and communicates only with the layer
+      directly below it. This is a classic pattern for REST APIs that keeps concerns
+      separated and easy to test.
+    </p>
+
+    <div class="layer-diagram">
+      <div class="layer layer-client">
+        <div class="layer-box">
+          <div>
+            <div class="layer-name" style="color:var(--blue)">🌐 Client</div>
+            <div class="layer-file">Browser / Mobile / Postman</div>
+          </div>
+          <span class="tag tag-blue">External</span>
+        </div>
+      </div>
+      <div class="layer-arrow">↓ HTTP Request</div>
+
+      <div class="layer layer-route">
+        <div class="layer-box">
+          <div>
+            <div class="layer-name" style="color:var(--purple)">🛣️ Routes Layer</div>
+            <div class="layer-file">src/routes/auth.routes.js</div>
+          </div>
+          <span class="tag tag-purple">URL → Handler</span>
+        </div>
+      </div>
+      <div class="layer-arrow">↓ calls controller</div>
+
+      <div class="layer layer-ctrl">
+        <div class="layer-box">
+          <div>
+            <div class="layer-name" style="color:var(--orange)">🎮 Controller Layer</div>
+            <div class="layer-file">src/controllers/auth.controller.js</div>
+          </div>
+          <span class="tag tag-orange">Validate + Orchestrate</span>
+        </div>
+      </div>
+      <div class="layer-arrow">↓ calls service</div>
+
+      <div class="layer layer-service">
+        <div class="layer-box">
+          <div>
+            <div class="layer-name" style="color:var(--green)">⚙️ Service Layer</div>
+            <div class="layer-file">src/services/auth.service.js</div>
+          </div>
+          <span class="tag tag-green">Business Logic</span>
+        </div>
+      </div>
+      <div class="layer-arrow">↓ queries DB</div>
+
+      <div class="layer layer-db">
+        <div class="layer-box">
+          <div>
+            <div class="layer-name" style="color:var(--yellow)">🗄️ Data Layer</div>
+            <div class="layer-file">src/models/users.model.js + src/config/database.js</div>
+          </div>
+          <span class="tag tag-yellow">Drizzle ORM + Neon</span>
+        </div>
+      </div>
+      <div class="layer-arrow">↑ Result bubbles back up</div>
+    </div>
+
+    <div class="callout callout-info">
+      <p><strong>Why this pattern?</strong> Each layer only knows about the one below it. Controllers don't touch the database directly — they call services. Services don't know about HTTP — they only speak domain logic. This makes each piece independently testable and replaceable.</p>
+    </div>
+  </section>
+
+
+  <!-- ── 3. File Structure ──────────────────────────── -->
+  <section id="file-structure">
+    <div class="section-header">
+      <div class="num">3</div>
+      <h2>File Structure</h2>
+    </div>
+
+    <div class="file-tree">
+<span class="folder">aquisitions-api/</span>
+├── <span class="folder">src/</span>
+│   ├── <span class="highlight">index.js</span>            <span class="file-desc">← Entry point: loads .env, boots server</span>
+│   ├── <span class="highlight">server.js</span>           <span class="file-desc">← Binds Express app to PORT</span>
+│   ├── <span class="highlight">app.js</span>              <span class="file-desc">← Express setup: middleware, routes, util endpoints</span>
+│   │
+│   ├── <span class="folder">config/</span>
+│   │   ├── <span class="file">database.js</span>         <span class="file-desc">← Drizzle ORM + Neon SQL client</span>
+│   │   └── <span class="file">logger.js</span>           <span class="file-desc">← Winston logger (file + console)</span>
+│   │
+│   ├── <span class="folder">models/</span>
+│   │   └── <span class="file">users.model.js</span>      <span class="file-desc">← Drizzle table schema for "users"</span>
+│   │
+│   ├── <span class="folder">routes/</span>
+│   │   └── <span class="file">auth.routes.js</span>      <span class="file-desc">← Maps /api/auth/* URLs to controllers</span>
+│   │
+│   ├── <span class="folder">controllers/</span>
+│   │   └── <span class="file">auth.controller.js</span>  <span class="file-desc">← Validates input, calls service, sends response</span>
+│   │
+│   ├── <span class="folder">services/</span>
+│   │   └── <span class="file">auth.service.js</span>     <span class="file-desc">← createUser, hashPassword (DB operations)</span>
+│   │
+│   ├── <span class="folder">validations/</span>
+│   │   └── <span class="file">auth.validations.js</span> <span class="file-desc">← Zod schemas: signupSchema, signinSchema</span>
+│   │
+│   └── <span class="folder">utils/</span>
+│       ├── <span class="file">jwt.js</span>              <span class="file-desc">← jwttoken.sign() / jwttoken.verify()</span>
+│       ├── <span class="file">cookies.js</span>          <span class="file-desc">← Secure cookie helpers (set/get/clear)</span>
+│       └── <span class="file">format.js</span>           <span class="file-desc">← Formats Zod errors into readable strings</span>
+│
+├── <span class="folder">.drizzle/</span>               <span class="file-desc">← Auto-generated SQL migrations</span>
+├── <span class="folder">logs/</span>                   <span class="file-desc">← error.log + combined.log (git-ignored)</span>
+├── <span class="new-file">drizzle.config.js</span>       <span class="file-desc">← Points Drizzle at schema & Neon DB</span>
+├── <span class="new-file">eslint.config.js</span>        <span class="file-desc">← ESLint flat config</span>
+├── <span class="new-file">.prettierrc</span>             <span class="file-desc">← Prettier formatting rules</span>
+└── <span class="new-file">package.json</span>            <span class="file-desc">← ESM project, deps, scripts</span>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:16px">
+      <p><strong>Import aliases (<code>#</code> prefix):</strong> The project uses Node.js subpath imports defined in <code>package.json</code> to avoid fragile relative paths like <code>../../config/logger</code>. Instead you write <code>import logger from '#config/logger.js'</code> — clean and refactor-safe.</p>
+    </div>
+  </section>
+
+
+  <!-- ── 4. Key Components ──────────────────────────── -->
+  <section id="components">
+    <div class="section-header">
+      <div class="num">4</div>
+      <h2>Key Components</h2>
+    </div>
+
+    <!-- app.js -->
+    <div class="card" style="border-left: 3px solid var(--blue)">
+      <div class="card-title">
+        <span class="tag tag-blue">app.js</span>
+        Express Application Bootstrap
+      </div>
+      <p style="margin-bottom:12px">The central Express setup file. Applies all middleware in order and mounts route groups. It does <em>not</em> start the server — that is <code>server.js</code>'s job, keeping concerns separated.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <span class="tag tag-blue">helmet</span>
+        <span class="tag tag-blue">cors</span>
+        <span class="tag tag-blue">express.json</span>
+        <span class="tag tag-blue">cookieParser</span>
+        <span class="tag tag-blue">morgan→winston</span>
+        <span class="tag tag-purple">/api/auth router</span>
+      </div>
+    </div>
+
+    <!-- Routes -->
+    <div class="card" style="border-left: 3px solid var(--purple)">
+      <div class="card-title">
+        <span class="tag tag-purple">auth.routes.js</span>
+        Route Definitions
+      </div>
+      <p style="margin-bottom:12px">Pure URL-to-handler mapping. No logic lives here. Uses <code>express.Router()</code> mounted at <code>/api/auth</code>. Currently defines three routes — only <code>sign-up</code> is wired to a real controller.</p>
+      <pre style="margin:0; padding: 14px 16px; font-size:12px">POST /api/auth/sign-up   → signup controller  ✅ Implemented
+POST /api/auth/sign-in   → inline stub         🚧 Placeholder
+POST /api/auth/sign-out  → inline stub         🚧 Placeholder</pre>
+    </div>
+
+    <!-- Controller -->
+    <div class="card" style="border-left: 3px solid var(--orange)">
+      <div class="card-title">
+        <span class="tag tag-orange">auth.controller.js</span>
+        Request Orchestration
+      </div>
+      <p style="margin-bottom:12px">The controller is the "traffic cop". It handles the HTTP concerns: reads the request body, runs Zod validation, delegates to the service, then constructs and sends the HTTP response. It never writes SQL or business rules.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <span class="tag tag-orange">validates with Zod</span>
+        <span class="tag tag-orange">calls createUser()</span>
+        <span class="tag tag-orange">signs JWT</span>
+        <span class="tag tag-orange">sets cookie</span>
+        <span class="tag tag-orange">returns 201 JSON</span>
+      </div>
+    </div>
+
+    <!-- Service -->
+    <div class="card" style="border-left: 3px solid var(--green)">
+      <div class="card-title">
+        <span class="tag tag-green">auth.service.js</span>
+        Business Logic & DB Access
+      </div>
+      <p style="margin-bottom:12px">The only layer that talks to the database. Contains <code>hashPassword()</code> (bcrypt, 12 rounds) and <code>createUser()</code>. Checks for duplicate emails, hashes the password, inserts the row, and returns the new user — with no HTTP knowledge.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <span class="tag tag-green">duplicate-email check</span>
+        <span class="tag tag-green">bcrypt hash</span>
+        <span class="tag tag-green">Drizzle INSERT</span>
+        <span class="tag tag-green">returns user (no password)</span>
+      </div>
+    </div>
+
+    <!-- Validations -->
+    <div class="card" style="border-left: 3px solid var(--purple)">
+      <div class="card-title">
+        <span class="tag tag-purple">auth.validations.js</span>
+        Input Schemas (Zod)
+      </div>
+      <p style="margin-bottom:12px">Defines the shape and rules for incoming request bodies using Zod schemas. <code>signupSchema</code> enforces valid email (auto-lowercased), max lengths, and role enum. <code>signinSchema</code> is ready for when sign-in is implemented.</p>
+<pre style="margin:0; padding: 14px 16px; font-size:12px">signupSchema: { name, email, password, role: 'user' | 'admin' }
+signinSchema: { email, password }</pre>
+    </div>
+
+    <!-- Utils -->
+    <div class="card-grid">
+      <div class="card" style="border-left: 3px solid var(--yellow)">
+        <div class="card-title">
+          <span class="tag tag-yellow">jwt.js</span>
+        </div>
+        <p>Wraps <code>jsonwebtoken</code> into a clean object with <code>.sign(payload)</code> and <code>.verify(token)</code>. Reads <code>JWT_SECRET</code> and <code>JWT_EXPIRES_IN</code> from env. Falls back to a development-only default secret.</p>
+      </div>
+      <div class="card" style="border-left: 3px solid var(--yellow)">
+        <div class="card-title">
+          <span class="tag tag-yellow">cookies.js</span>
+        </div>
+        <p>Cookie utility object with <code>.set()</code>, <code>.get()</code>, <code>.clear()</code>. Enforces <code>httpOnly</code>, <code>secure</code> (production only), <code>sameSite: strict</code>, and 15-minute expiry on all cookies.</p>
+      </div>
+      <div class="card" style="border-left: 3px solid var(--yellow)">
+        <div class="card-title">
+          <span class="tag tag-yellow">format.js</span>
+        </div>
+        <p>Converts Zod's nested error structure (<code>ZodError.issues[]</code>) into a flat, comma-separated human-readable string for API error responses.</p>
+      </div>
+      <div class="card" style="border-left: 3px solid var(--teal)">
+        <div class="card-title">
+          <span class="tag tag-green">logger.js</span>
+        </div>
+        <p>Winston logger writing <code>error.log</code> and <code>combined.log</code> to disk. In non-production environments adds a colorized console transport. Morgan HTTP logs are piped through Winston.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── 5. Tech Stack ──────────────────────────────── -->
+  <section id="tech-stack">
+    <div class="section-header">
+      <div class="num">5</div>
+      <h2>Tech Stack & Dependencies</h2>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">🟩</div>
+        <div class="tech-name">Node.js + ESM</div>
+        <div class="tech-version">ES Modules (type: "module")</div>
+        <div class="tech-desc">Runtime environment. Uses native ES module imports throughout — no CommonJS <code>require()</code>. Hot-reload via <code>--watch</code> flag in dev.</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-icon">⚡</div>
+        <div class="tech-name">Express.js</div>
+        <div class="tech-version">v5.2.1</div>
+        <div class="tech-desc">HTTP framework. v5 includes async error handling improvements — <code>async</code> route handlers can throw and Express catches them automatically.</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-icon">🐘</div>
+        <div class="tech-name">Neon + Drizzle ORM</div>
+        <div class="tech-version">drizzle-orm v0.45.2</div>
+        <div class="tech-desc">Neon provides a serverless PostgreSQL database. Drizzle is a TypeScript-first ORM with a query builder style. Uses HTTP transport (no persistent connection pool).</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-icon">🔐</div>
+        <div class="tech-name">JWT + bcrypt</div>
+        <div class="tech-version">jsonwebtoken v9 + bcrypt v6</div>
+        <div class="tech-desc">JWTs issued on registration, stored in HTTP-only cookies. Passwords hashed with bcrypt at cost factor 12 — strong but safe for synchronous environments.</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-icon">🛡️</div>
+        <div class="tech-name">Zod</div>
+        <div class="tech-version">v4.4.3</div>
+        <div class="tech-desc">Runtime schema validation for all incoming request bodies. Provides type-safe parsing with <code>safeParse()</code> — never throws, returns a result object.</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-icon">📋</div>
+        <div class="tech-name">Winston + Morgan</div>
+        <div class="tech-version">winston v3.19.0</div>
+        <div class="tech-desc">Structured logging to files. Morgan handles HTTP access logs and pipes them through Winston so all logs go to the same destination.</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-icon">🪖</div>
+        <div class="tech-name">Helmet + CORS</div>
+        <div class="tech-version">helmet v8.2.0</div>
+        <div class="tech-desc">Helmet sets security-related HTTP response headers (CSP, HSTS, etc.). CORS handles cross-origin requests from browser clients.</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-icon">🧹</div>
+        <div class="tech-name">ESLint + Prettier</div>
+        <div class="tech-version">ESLint v10 + Prettier v3</div>
+        <div class="tech-desc">Integrated via <code>eslint-plugin-prettier</code> so formatting errors show up as lint errors. Enforces <code>prefer-const</code>, no <code>var</code>, arrow callbacks.</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-icon">🍪</div>
+        <div class="tech-name">cookie-parser</div>
+        <div class="tech-version">v1.4.7</div>
+        <div class="tech-desc">Express middleware that parses Cookie headers and populates <code>req.cookies</code>. Required to read the JWT token back from the cookie on protected routes.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── 6. Data Flow ───────────────────────────────── -->
+  <section id="data-flow">
+    <div class="section-header">
+      <div class="num">6</div>
+      <h2>Data Flow & Communication</h2>
+    </div>
+
+    <p style="color:var(--muted); margin-bottom:20px">
+      Every request goes through the same pipeline. Here is a visual of how data moves
+      from the moment a request arrives to the moment a response is sent:
+    </p>
+
+    <pre>
+┌────────────────────────────────────────────────────────────────────┐
+│                         HTTP REQUEST                               │
+│              POST /api/auth/sign-up                                │
+│       Body: { name, email, password, role }                        │
+└───────────────────────────┬────────────────────────────────────────┘
+                            │
+                  ┌─────────▼──────────┐
+                  │   Middleware Chain  │
+                  │  helmet → cors →   │
+                  │  json → cookie →   │
+                  │  morgan/logger     │
+                  └─────────┬──────────┘
+                            │
+                  ┌─────────▼──────────┐
+                  │  auth.routes.js    │
+                  │  POST /sign-up     │
+                  └─────────┬──────────┘
+                            │
+                  ┌─────────▼──────────────────────────────────┐
+                  │          auth.controller.js                 │
+                  │  1. signupSchema.safeParse(req.body)        │
+                  │     ❌ invalid → 400 { error, details }     │
+                  │     ✅ valid  → destructure fields          │
+                  │  2. await createUser({ name,email,... })    │
+                  │  3. jwttoken.sign({ id, email, role })      │
+                  │  4. cookies.set(res, 'token', jwt)          │
+                  │  5. res.status(201).json({ user })          │
+                  └─────────┬──────────────────────────────────┘
+                            │ createUser()
+                  ┌─────────▼──────────────────────────────────┐
+                  │          auth.service.js                    │
+                  │  1. db.select() WHERE email = ?             │
+                  │     → exists? throw 'already exists'        │
+                  │  2. bcrypt.hash(password, 12)               │
+                  │  3. db.insert(users).values({...})          │
+                  │     .returning({ id, name, email, role })   │
+                  │  4. return newUser                          │
+                  └─────────┬──────────────────────────────────┘
+                            │ Drizzle ORM
+                  ┌─────────▼──────────────────────────────────┐
+                  │     Neon PostgreSQL (serverless HTTP)       │
+                  │     Table: users                            │
+                  │     id | name | email | password | role    │
+                  └────────────────────────────────────────────┘</pre>
+
+    <div class="callout callout-green" style="margin-top: 16px">
+      <p><strong>Error propagation:</strong> Service errors are thrown and caught by the controller's <code>try/catch</code>. Known errors (e.g., "email already exists") return a 409. Unknown errors are forwarded to Express via <code>next(e)</code> for global error handling.</p>
+    </div>
+  </section>
+
+
+  <!-- ── 7. Endpoints ───────────────────────────────── -->
+  <section id="endpoints">
+    <div class="section-header">
+      <div class="num">7</div>
+      <h2>API Endpoints</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Path</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Response</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag tag-blue">GET</span></td>
+          <td><code>/</code></td>
+          <td>Root health check</td>
+          <td><span class="tag tag-green">Live</span></td>
+          <td>200 "Olá Mundo!"</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-blue">GET</span></td>
+          <td><code>/health</code></td>
+          <td>System uptime &amp; status</td>
+          <td><span class="tag tag-green">Live</span></td>
+          <td>200 <code>{ status, timestamp, uptime }</code></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-blue">GET</span></td>
+          <td><code>/api</code></td>
+          <td>API status banner</td>
+          <td><span class="tag tag-green">Live</span></td>
+          <td>200 <code>{ message }</code></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-green">POST</span></td>
+          <td><code>/api/auth/sign-up</code></td>
+          <td>Register a new user</td>
+          <td><span class="tag tag-green">Live</span></td>
+          <td>201 <code>{ message, user }</code> + JWT cookie</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-green">POST</span></td>
+          <td><code>/api/auth/sign-in</code></td>
+          <td>Authenticate existing user</td>
+          <td><span class="tag tag-yellow">Stub</span></td>
+          <td>Plain text response (not implemented)</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-green">POST</span></td>
+          <td><code>/api/auth/sign-out</code></td>
+          <td>Invalidate session</td>
+          <td><span class="tag tag-yellow">Stub</span></td>
+          <td>Plain text response (not implemented)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="color:var(--muted); font-size:13px; margin-top: 8px">
+      <strong>Sign-up request body:</strong>
+      <code>{ "name": "string", "email": "string", "password": "string", "role": "user" | "admin" }</code>
+    </p>
+  </section>
+
+
+  <!-- ── 8. Execution Flow ──────────────────────────── -->
+  <section id="execution">
+    <div class="section-header">
+      <div class="num">8</div>
+      <h2>Execution Flow</h2>
+    </div>
+
+    <p style="color:var(--muted); margin-bottom:24px">
+      A step-by-step walkthrough of the most complete flow in the system:
+      <strong style="color:var(--text)">POST /api/auth/sign-up</strong>.
+    </p>
+
+    <ul class="flow-steps">
+      <li class="flow-step">
+        <div class="flow-step-num">1</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">Process boots</div>
+          <div class="flow-step-desc"><code>src/index.js</code> loads <code>dotenv</code>, which reads <code>.env</code> and injects <code>PORT</code>, <code>DATABASE_URL</code>, <code>NODE_ENV</code> into <code>process.env</code>. Then imports <code>server.js</code>.</div>
+          <div class="flow-step-code">node src/index.js  →  Listening on http://localhost:3000</div>
+        </div>
+      </li>
+      <li class="flow-step">
+        <div class="flow-step-num">2</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">Request arrives</div>
+          <div class="flow-step-desc">A client sends <code>POST /api/auth/sign-up</code> with a JSON body. Express processes it through the middleware stack: Helmet sets security headers → CORS adds origin headers → <code>express.json()</code> parses the body → Morgan logs the request via Winston.</div>
+        </div>
+      </li>
+      <li class="flow-step">
+        <div class="flow-step-num">3</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">Router matches</div>
+          <div class="flow-step-desc"><code>app.use('/api/auth', authRouter)</code> sends the request to <code>auth.routes.js</code>, which matches <code>POST /sign-up</code> and calls the <code>signup</code> controller function.</div>
+        </div>
+      </li>
+      <li class="flow-step">
+        <div class="flow-step-num">4</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">Validation</div>
+          <div class="flow-step-desc">Controller calls <code>signupSchema.safeParse(req.body)</code>. Zod checks types, formats (valid email), lengths (max 255), and normalizes (email to lowercase, trim whitespace). If it fails, returns 400 immediately with a formatted error message.</div>
+          <div class="flow-step-code">❌ { "error": "Validation Failed", "details": "Invalid email" }  →  400</div>
+        </div>
+      </li>
+      <li class="flow-step">
+        <div class="flow-step-num">5</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">Service: duplicate email check</div>
+          <div class="flow-step-desc"><code>createUser()</code> runs <code>db.select().from(users).where(eq(users.email, email)).limit(1)</code>. If a user already exists, throws an error that the controller catches and returns as 409.</div>
+          <div class="flow-step-code">❌ { "error": "Email already exist" }  →  409</div>
+        </div>
+      </li>
+      <li class="flow-step">
+        <div class="flow-step-num">6</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">Password hashing</div>
+          <div class="flow-step-desc"><code>hashPassword()</code> calls <code>bcrypt.hash(password, 12)</code>. Cost factor 12 means the hash takes ~300ms — slow enough to resist brute-force, fast enough for a web API.</div>
+        </div>
+      </li>
+      <li class="flow-step">
+        <div class="flow-step-num">7</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">Database insert</div>
+          <div class="flow-step-desc">Drizzle runs <code>INSERT INTO users (name, email, password, role) VALUES (...) RETURNING (id, name, email, role, created_at)</code> over Neon's HTTP transport. Returns the new user row (password hash excluded from the return projection).</div>
+        </div>
+      </li>
+      <li class="flow-step">
+        <div class="flow-step-num">8</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">JWT issued</div>
+          <div class="flow-step-desc">Controller calls <code>jwttoken.sign({ id, email, role })</code>. Payload is signed with <code>JWT_SECRET</code> and expires in <code>JWT_EXPIRES_IN</code> (default 1 day).</div>
+        </div>
+      </li>
+      <li class="flow-step">
+        <div class="flow-step-num">9</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">Cookie set & response</div>
+          <div class="flow-step-desc">Token is stored in an <code>httpOnly</code>, <code>sameSite: strict</code>, <code>secure</code> (in production) cookie with a 15-minute expiry. The JSON response excludes sensitive data.</div>
+          <div class="flow-step-code">✅ { "message": "User Registered", "user": { id, name, email, role } }  →  201</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+
+  <!-- ── 9. Strengths & Tradeoffs ───────────────────── -->
+  <section id="tradeoffs">
+    <div class="section-header">
+      <div class="num">9</div>
+      <h2>Strengths & Tradeoffs</h2>
+    </div>
+
+    <div class="pro-con-grid">
+      <div class="pro-con-card pros">
+        <div class="pctitle">✅ Strengths</div>
+        <ul>
+          <li>
+            <span class="icon">✓</span>
+            <span><strong>Clear separation of concerns.</strong> Each file has one job — routes, controllers, services, and models never bleed into each other.</span>
+          </li>
+          <li>
+            <span class="icon">✓</span>
+            <span><strong>Solid security defaults.</strong> Helmet headers, httpOnly cookies, bcrypt at cost 12, Zod input sanitization, and CORS — all set up out of the box.</span>
+          </li>
+          <li>
+            <span class="icon">✓</span>
+            <span><strong>Serverless-ready DB.</strong> Neon's HTTP driver means no persistent connection pool — perfect for serverless/edge deployments where cold starts are frequent.</span>
+          </li>
+          <li>
+            <span class="icon">✓</span>
+            <span><strong>Clean import system.</strong> Subpath imports (<code>#config/*</code>) eliminate fragile <code>../../</code> paths and make refactoring safe.</span>
+          </li>
+          <li>
+            <span class="icon">✓</span>
+            <span><strong>Structured logging from day one.</strong> Winston with file transports and Morgan piped through it means logs are queryable and persistent.</span>
+          </li>
+          <li>
+            <span class="icon">✓</span>
+            <span><strong>Code quality tooling.</strong> ESLint + Prettier integrated means a consistent codebase as the team grows.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="pro-con-card cons">
+        <div class="pctitle">⚠️ Watch Out For</div>
+        <ul>
+          <li>
+            <span class="icon">⚠</span>
+            <span><strong>No global error handler.</strong> <code>next(e)</code> is called in controllers, but there's no <code>app.use((err, req, res, next) =&gt; {...})</code> to catch it — unhandled errors crash Express.</span>
+          </li>
+          <li>
+            <span class="icon">⚠</span>
+            <span><strong>Sign-in/Sign-out are stubs.</strong> The two remaining auth flows are not implemented — the API is not functional end-to-end yet.</span>
+          </li>
+          <li>
+            <span class="icon">⚠</span>
+            <span><strong>JWT secret fallback.</strong> <code>jwt.js</code> falls back to a hardcoded secret string if <code>JWT_SECRET</code> is not set. This must be set before any production deployment.</span>
+          </li>
+          <li>
+            <span class="icon">⚠</span>
+            <span><strong>No rate limiting.</strong> The sign-up endpoint has no rate limiting — it's open to abuse/spam registrations without something like <code>express-rate-limit</code>.</span>
+          </li>
+          <li>
+            <span class="icon">⚠</span>
+            <span><strong>15-minute cookie vs 1-day JWT.</strong> The cookie expires in 15 min but the JWT itself is valid for 1 day — a mismatch that could cause confusing auth behavior.</span>
+          </li>
+          <li>
+            <span class="icon">⚠</span>
+            <span><strong>No tests.</strong> Zero test files exist. The ESLint config includes a <code>tests/**</code> glob rule, suggesting tests are planned but not yet written.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── 10. Summary ────────────────────────────────── -->
+  <section id="summary">
+    <div class="section-header">
+      <div class="num">10</div>
+      <h2>Final Summary</h2>
+    </div>
+
+    <div class="summary-card">
+      <h3>The 2-sentence pitch</h3>
+      <p>
+        This is an early-stage Node.js REST API that handles user registration using a
+        clean layered architecture — requests flow from <strong>Express routes → controllers
+        (validation) → services (business logic) → Drizzle ORM → Neon PostgreSQL</strong>,
+        with JWTs issued on sign-up and stored in secure HTTP-only cookies.
+        Sign-up is the only fully implemented feature; sign-in and sign-out are
+        placeholders, and the next priorities should be completing those flows,
+        adding a global error handler, rate limiting, and a test suite.
+      </p>
+    </div>
+
+    <div class="callout callout-info" style="margin-top: 20px">
+      <p><strong>Scripts quick reference:</strong>
+        <code>npm run dev</code> — start with hot-reload ·
+        <code>npm run lint</code> — check code style ·
+        <code>npm run db:studio</code> — open Drizzle Studio ·
+        <code>npm run db:generate</code> — generate migrations ·
+        <code>npm run db:migrate</code> — apply migrations
+      </p>
+    </div>
+
+    <div class="callout callout-warn" style="margin-top: 12px">
+      <p><strong>Before going to production:</strong> Set <code>JWT_SECRET</code> to a long random string in your environment, ensure <code>NODE_ENV=production</code> (activates secure cookies), add a global Express error handler, implement rate limiting on auth routes, and add the <code>JWT_EXPIRES_IN</code> env var.</p>
+    </div>
+  </section>
+
+  <footer style="margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px">
+    Generated for <strong style="color: var(--text)">aquisitions-api v1.0.0</strong> · Architecture documented on 2026-06-30
+  </footer>
+
+</main>
+
+<!-- Active sidebar link tracking -->
+<script>
+  const links = document.querySelectorAll('.sidebar nav a');
+  const sections = document.querySelectorAll('section[id]');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.sidebar nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
