@@ -2,10 +2,10 @@
 
 This project supports two Docker environments:
 
-| Environment | Database          | Compose file                |
-|-------------|-------------------|-----------------------------|
-| Development | Neon Local proxy  | `docker-compose.dev.yml`    |
-| Production  | Neon Cloud        | `docker-compose.prod.yml`   |
+| Environment | Database         | Compose file              |
+| ----------- | ---------------- | ------------------------- |
+| Development | Neon Local proxy | `docker-compose.dev.yml`  |
+| Production  | Neon Cloud       | `docker-compose.prod.yml` |
 
 ---
 
@@ -13,7 +13,7 @@ This project supports two Docker environments:
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
 - A [Neon](https://neon.tech) account with a project created
-- **Mac users:** in Docker Desktop → Settings → General, switch from *VirtioFS* to **gRPC FUSE**
+- **Mac users:** in Docker Desktop → Settings → General, switch from _VirtioFS_ to **gRPC FUSE**
 
 ---
 
@@ -31,12 +31,12 @@ cp .env.development .env.development.local   # optional personal override
 
 Open `.env.development` and set:
 
-| Variable          | Where to find it                                          |
-|-------------------|-----------------------------------------------------------|
-| `NEON_API_KEY`    | Neon Console → Account → API Keys                        |
-| `NEON_PROJECT_ID` | Neon Console → Project Settings → General                |
-| `ARCJET_KEY`      | [app.arcjet.com](https://app.arcjet.com)                 |
-| `JWT_SECRET`      | Any random string (for dev, anything works)              |
+| Variable          | Where to find it                            |
+| ----------------- | ------------------------------------------- |
+| `NEON_API_KEY`    | Neon Console → Account → API Keys           |
+| `NEON_PROJECT_ID` | Neon Console → Project Settings → General   |
+| `ARCJET_KEY`      | [app.arcjet.com](https://app.arcjet.com)    |
+| `JWT_SECRET`      | Any random string (for dev, anything works) |
 
 > `DATABASE_URL`, `NEON_LOCAL`, and `NEON_LOCAL_HOST` are pre-filled and point
 > to the Neon Local container — **do not change them**.
@@ -48,6 +48,7 @@ docker compose -f docker-compose.dev.yml up --build
 ```
 
 What happens on startup:
+
 1. `neon-local` pulls the Neon Local image and connects to your Neon project
 2. An ephemeral branch is created automatically
 3. The `app` waits for `neon-local` to be healthy
@@ -72,7 +73,7 @@ By default `DELETE_BRANCH=true` (Neon Local default) — the branch is wiped whe
 
 ```yaml
 environment:
-  DELETE_BRANCH: "false"
+  DELETE_BRANCH: 'false'
 ```
 
 ---
@@ -88,10 +89,10 @@ environment:
 Open `.env.production` and replace every placeholder:
 
 | Variable       | Where to find it                                              |
-|----------------|---------------------------------------------------------------|
+| -------------- | ------------------------------------------------------------- |
 | `DATABASE_URL` | Neon Console → Connection Details (use the **pooled** string) |
-| `JWT_SECRET`   | Generate: `openssl rand -base64 32`                          |
-| `ARCJET_KEY`   | [app.arcjet.com](https://app.arcjet.com) (prod project)      |
+| `JWT_SECRET`   | Generate: `openssl rand -base64 32`                           |
+| `ARCJET_KEY`   | [app.arcjet.com](https://app.arcjet.com) (prod project)       |
 
 ### 2. Build and start
 
@@ -117,20 +118,20 @@ docker compose -f docker-compose.prod.yml down
 
 ## Environment Variables Reference
 
-| Variable           | Dev default                                    | Production              |
-|--------------------|------------------------------------------------|-------------------------|
-| `PORT`             | `3000`                                         | `3000`                  |
-| `NODE_ENV`         | `development`                                  | `production`            |
-| `LOG_LEVEL`        | `debug`                                        | `info`                  |
-| `DATABASE_URL`     | `postgres://neon:npg@neon-local:5432/neondb`   | Your Neon Cloud URL     |
-| `NEON_LOCAL`       | `true`                                         | _(not set)_             |
-| `NEON_LOCAL_HOST`  | `neon-local`                                   | _(not set)_             |
-| `NEON_API_KEY`     | Your Neon API key                              | _(not needed)_          |
-| `NEON_PROJECT_ID`  | Your Neon project ID                           | _(not needed)_          |
-| `JWT_SECRET`       | Any dev string                                 | Strong random secret    |
-| `JWT_EXPIRES_IN`   | `1d`                                           | `1d`                    |
-| `ARCJET_KEY`       | Dev Arcjet key                                 | Prod Arcjet key         |
-| `ARCJET_ENV`       | `development`                                  | `production`            |
+| Variable          | Dev default                                  | Production           |
+| ----------------- | -------------------------------------------- | -------------------- |
+| `PORT`            | `3000`                                       | `3000`               |
+| `NODE_ENV`        | `development`                                | `production`         |
+| `LOG_LEVEL`       | `debug`                                      | `info`               |
+| `DATABASE_URL`    | `postgres://neon:npg@neon-local:5432/neondb` | Your Neon Cloud URL  |
+| `NEON_LOCAL`      | `true`                                       | _(not set)_          |
+| `NEON_LOCAL_HOST` | `neon-local`                                 | _(not set)_          |
+| `NEON_API_KEY`    | Your Neon API key                            | _(not needed)_       |
+| `NEON_PROJECT_ID` | Your Neon project ID                         | _(not needed)_       |
+| `JWT_SECRET`      | Any dev string                               | Strong random secret |
+| `JWT_EXPIRES_IN`  | `1d`                                         | `1d`                 |
+| `ARCJET_KEY`      | Dev Arcjet key                               | Prod Arcjet key      |
+| `ARCJET_ENV`      | `development`                                | `production`         |
 
 ---
 
