@@ -80,8 +80,16 @@ const admin = {
   updated_at: new Date().toISOString(),
 };
 
-const userToken = makeToken({ id: user.id, email: user.email, role: user.role });
-const adminToken = makeToken({ id: admin.id, email: admin.email, role: admin.role });
+const userToken = makeToken({
+  id: user.id,
+  email: user.email,
+  role: user.role,
+});
+const adminToken = makeToken({
+  id: admin.id,
+  email: admin.email,
+  role: admin.role,
+});
 const bearer = token => ({ Authorization: `Bearer ${token}` });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,7 +132,10 @@ describe('POST /api/auth/sign-up', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.message).toBe('User Registered');
-    expect(res.body.user).toMatchObject({ email: validBody.email, role: 'user' });
+    expect(res.body.user).toMatchObject({
+      email: validBody.email,
+      role: 'user',
+    });
     expect(res.headers['set-cookie']).toBeDefined();
   });
 
@@ -228,9 +239,7 @@ describe('GET /api/users', () => {
   it('returns 200 with the full user list', async () => {
     mockGetAllUsers.mockResolvedValue([user, admin]);
 
-    const res = await request(app)
-      .get('/api/users')
-      .set(bearer(adminToken));
+    const res = await request(app).get('/api/users').set(bearer(adminToken));
 
     expect(res.status).toBe(200);
     expect(res.body.count).toBe(2);
@@ -240,9 +249,7 @@ describe('GET /api/users', () => {
   it('returns 200 with an empty list when no users exist', async () => {
     mockGetAllUsers.mockResolvedValue([]);
 
-    const res = await request(app)
-      .get('/api/users')
-      .set(bearer(userToken));
+    const res = await request(app).get('/api/users').set(bearer(userToken));
 
     expect(res.status).toBe(200);
     expect(res.body.count).toBe(0);
@@ -260,9 +267,7 @@ describe('GET /api/users/:id', () => {
   });
 
   it('returns 400 for a non-numeric id', async () => {
-    const res = await request(app)
-      .get('/api/users/abc')
-      .set(bearer(userToken));
+    const res = await request(app).get('/api/users/abc').set(bearer(userToken));
 
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Validation Failed');
@@ -271,9 +276,7 @@ describe('GET /api/users/:id', () => {
   it('returns 404 when user does not exist', async () => {
     mockGetUserById.mockResolvedValue(null);
 
-    const res = await request(app)
-      .get('/api/users/99')
-      .set(bearer(userToken));
+    const res = await request(app).get('/api/users/99').set(bearer(userToken));
 
     expect(res.status).toBe(404);
   });

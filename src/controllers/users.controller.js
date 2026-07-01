@@ -1,6 +1,9 @@
 import logger from '#config/logger.js';
 import formatValidationErrors from '#utils/format.js';
-import { userIdSchema, updateUserSchema } from '#validations/users.validations.js';
+import {
+  userIdSchema,
+  updateUserSchema,
+} from '#validations/users.validations.js';
 import {
   getAllUsers,
   getUserById as getUserByIdService,

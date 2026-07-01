@@ -5,8 +5,9 @@ import logger from '#config/logger.js';
 const authenticate = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    const bearerToken =
-      authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const bearerToken = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null;
     const token = bearerToken || cookies.get(req, 'token');
 
     if (!token) {
