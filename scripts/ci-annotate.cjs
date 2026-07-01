@@ -1,11 +1,11 @@
 // Reads jest-results.json and writes GitHub Actions ::error:: annotations.
 // Runs as CommonJS (.cjs) so it works regardless of "type": "module".
-const fs = require('fs');
+import fs from 'fs';
 
 try {
   const r = JSON.parse(fs.readFileSync('jest-results.json', 'utf8'));
 
-  (r.testResults || []).forEach(function (suite) {
+  (r.testResults || []).forEach(suite => {
     const fp = (suite.testFilePath || suite.filePath || 'unknown').replace(
       process.cwd() + '/',
       ''
@@ -18,7 +18,7 @@ try {
       return;
     }
 
-    (suite.assertionResults || []).forEach(function (t) {
+    (suite.assertionResults || []).forEach(t => {
       if (t && t.status === 'failed') {
         const name =
           t.fullName ||
