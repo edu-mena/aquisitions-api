@@ -1,5 +1,3 @@
-// Reads jest-results.json and writes GitHub Actions ::error:: annotations.
-// Runs as CommonJS (.cjs) so it works regardless of "type": "module".
 import fs from 'fs';
 
 try {
@@ -11,7 +9,6 @@ try {
       ''
     );
 
-    // Suite-level failure — crashed before any individual test ran
     if (suite.status === 'failed' && !(suite.assertionResults || []).length) {
       const msg = (suite.message || 'Suite failed to run').slice(0, 200);
       process.stdout.write('::error file=' + fp + '::' + msg + '\n');
@@ -35,8 +32,6 @@ try {
   });
 } catch (e) {
   process.stdout.write(
-    '::warning::Could not parse test results for annotations: ' +
-      e.message +
-      '\n'
+    '::warning::Could not parse test results: ' + e.message + '\n'
   );
 }

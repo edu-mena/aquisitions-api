@@ -96,5 +96,5 @@ jobs:
       - name: Annotate test failures
         if: steps.tests.outcome == 'failure'
         run: |
-          [ -f jest-results.json ] && node scripts/ci-annotate.cjs
+          [ -f jest-results.json ] && node scripts/ci-annotate.mjs
           exit 1
