@@ -96,18 +96,5 @@ jobs:
       - name: Annotate test failures
         if: steps.tests.outcome == 'failure'
         run: |
-          if [ -f jest-results.json ]; then
-            node -e "
-              const r = JSON.parse(require('fs').readFileSync('jest-results.json', 'utf8'));
-              r.testResults.forEach(suite => {
-                (suite.assertionResults || [])
-                  .filter(t => t.status === 'failed')
-                  .forEach(t => {
-                    const file = suite.testFilePath.replace(process.cwd() + '/', '');
-                    const msg = (t.failureMessages || []).join(' ').replace(/\n/g, ' ').slice(0, 200);
-                    console.log(\`::error file=\${file}::FAILED: \${t.fullName} — \${msg}\`);
-                  });
-              });
-            "
-          fi
+          [ -f jest-results.json ] && node scripts/ci-annotate.cjs
           exit 1
