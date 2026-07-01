@@ -5,6 +5,7 @@ on:
     branches: [main, staging]
   pull_request:
     branches: [main, staging]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -99,11 +100,11 @@ jobs:
             node -e "
               const r = JSON.parse(require('fs').readFileSync('jest-results.json', 'utf8'));
               r.testResults.forEach(suite => {
-                suite.testResults
+                (suite.assertionResults || [])
                   .filter(t => t.status === 'failed')
                   .forEach(t => {
                     const file = suite.testFilePath.replace(process.cwd() + '/', '');
-                    const msg = t.failureMessages.join(' ').replace(/\n/g, ' ').slice(0, 200);
+                    const msg = (t.failureMessages || []).join(' ').replace(/\n/g, ' ').slice(0, 200);
                     console.log(\`::error file=\${file}::FAILED: \${t.fullName} — \${msg}\`);
                   });
               });
