@@ -36,7 +36,6 @@ jobs:
           NODE_ENV: test
           NODE_OPTIONS: --experimental-vm-modules
           DATABASE_URL: postgres://test:test@localhost:5432/testdb
-          JWT_SECRET: ci-test-secret-not-used-in-production
           ARCJET_KEY: placeholder
 
       - name: Upload coverage report
